@@ -1,270 +1,923 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistem Absensi Digital Pegawai</title>
-  <!-- Google Fonts & Font Awesome Icons -->
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-  <style>
-    :root {
-      --primary: #1e3a8a; /* Navy Pemerintahan */
-      --primary-accent: #3b82f6;
-      --bg: #f8fafc;
-      --card-bg: #ffffff;
-      --text: #0f172a;
-      --text-muted: #64748b;
-      --border: #e2e8f0;
-      --success: #10b981;
-      --warning: #f59e0b;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Duty Portal - Mechanic Workshop RP</title>
+    
+    <!-- Google Fonts & FontAwesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+    <style>
+        :root {
+            --bg: #0b0f19;
+            --surface: #151c2c;
+            --surface-hover: #1e293b;
+            --accent: #f59e0b;
+            --accent-glow: rgba(245, 158, 11, 0.25);
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --danger: #ef4444;
+            --border: #243044;
+        }
 
-    body {
-      background: var(--bg);
-      color: var(--text);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      padding: 20px;
-    }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background-color: var(--bg); color: var(--text); min-height: 100vh; padding: 20px; display: flex; flex-direction: column; align-items: center; }
 
-    .container {
-      width: 100%;
-      max-width: 480px;
-      background: var(--card-bg);
-      border-radius: 20px;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
-      border: 1px solid var(--border);
-      overflow: hidden;
-    }
+        .header { text-align: center; margin-bottom: 25px; margin-top: 10px; }
+        .header h1 { color: var(--accent); font-size: 2rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; text-shadow: 0 0 20px var(--accent-glow); }
+        .header p { color: var(--text-muted); font-size: 0.9rem; margin-top: 4px; }
 
-    .header {
-      background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
-      color: white;
-      padding: 30px 20px;
-      text-align: center;
-      position: relative;
-    }
+        .nav-tabs { display: flex; gap: 10px; margin-bottom: 25px; background: var(--surface); padding: 6px; border-radius: 12px; border: 1px solid var(--border); }
+        .tab-btn { background: transparent; border: none; color: var(--text-muted); padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 0.85rem; transition: 0.2s; }
+        .tab-btn.active { background: var(--accent); color: #000; box-shadow: 0 0 15px var(--accent-glow); }
 
-    .header i.badge-icon {
-      font-size: 38px;
-      margin-bottom: 10px;
-      color: #93c5fd;
-    }
+        .container { width: 100%; max-width: 850px; }
+        .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-bottom: 20px; }
 
-    .header h2 { font-size: 20px; font-weight: 700; letter-spacing: 0.5px; }
-    .header p { font-size: 13px; opacity: 0.85; margin-top: 4px; }
+        .form-group { margin-bottom: 18px; }
+        label { display: block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
+        input, select { width: 100%; padding: 12px 16px; border-radius: 10px; border: 1px solid var(--border); background: #0c1017; color: #fff; font-size: 0.95rem; outline: none; transition: 0.2s; }
+        input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
 
-    .clock-card {
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(8px);
-      border-radius: 12px;
-      padding: 12px;
-      margin-top: 15px;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-    }
+        .btn-group { display: flex; gap: 12px; margin-top: 25px; }
+        button.btn { flex: 1; padding: 14px; border: none; border-radius: 10px; font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: 0.2s; text-transform: uppercase; letter-spacing: 0.5px; display: flex; justify-content: center; align-items: center; gap: 8px; }
+        .btn-in { background-color: var(--success); color: white; }
+        .btn-in:hover { filter: brightness(1.1); box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); }
+        .btn-out { background-color: var(--danger); color: white; }
+        .btn-out:hover { filter: brightness(1.1); box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
+        .btn-primary { background-color: var(--accent); color: #000; }
+        .btn-primary:hover { filter: brightness(1.1); }
 
-    #liveClock { font-size: 26px; font-weight: 700; letter-spacing: 1px; }
-    #liveDate { font-size: 12px; opacity: 0.9; }
+        .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; }
+        .badge-on { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid var(--success); }
+        .badge-off { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid var(--danger); }
 
-    .form-body { padding: 25px 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 14px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+        th { color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; }
 
-    .form-group { margin-bottom: 18px; }
-    .form-group label {
-      display: block;
-      font-size: 13px;
-      font-weight: 600;
-      margin-bottom: 6px;
-      color: var(--text);
-    }
+        .hidden { display: none !important; }
+        .alert { padding: 12px; border-radius: 10px; margin-bottom: 18px; font-size: 0.85rem; font-weight: 600; text-align: center; }
+        .alert-error { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid var(--danger); }
+        .alert-success { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid var(--success); }
 
-    .input-wrapper {
-      position: relative;
-      display: flex;
-      align-items: center;
-    }
+        .action-btn-sm { padding: 6px 10px; border-radius: 6px; border: none; font-weight: 600; font-size: 0.75rem; cursor: pointer; margin-right: 4px; margin-bottom: 4px; display: inline-flex; align-items: center; gap: 4px; }
+        .btn-del { background: var(--danger); color: #fff; }
+        .btn-reset { background: #3b82f6; color: #fff; }
+        .btn-force-off { background: #ea580c; color: #fff; }
 
-    .input-wrapper i {
-      position: absolute;
-      left: 14px;
-      color: var(--text-muted);
-      font-size: 14px;
-    }
-
-    .form-control {
-      width: 100%;
-      padding: 12px 14px 12px 40px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      font-size: 14px;
-      background: #f8fafc;
-      transition: all 0.2s;
-    }
-
-    .form-control:focus {
-      outline: none;
-      border-color: var(--primary-accent);
-      background: white;
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
-    }
-
-    .radio-tile-group {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 6px;
-    }
-
-    .radio-tile {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 12px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text-muted);
-      background: #f8fafc;
-      transition: all 0.2s;
-    }
-
-    input[type="radio"]:checked + .radio-tile {
-      background: #eff6ff;
-      border-color: var(--primary-accent);
-      color: var(--primary);
-    }
-
-    .salary-box {
-      background: #f0fdf4;
-      border: 1px solid #bbf7d0;
-      border-radius: 12px;
-      padding: 14px;
-      margin-bottom: 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .salary-title { font-size: 12px; color: #166534; font-weight: 500; }
-    .salary-amount { font-size: 16px; font-weight: 700; color: #15803d; }
-
-    .btn-submit {
-      width: 100%;
-      padding: 14px;
-      background: var(--primary);
-      color: white;
-      border: none;
-      border-radius: 10px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .btn-submit:hover { background: #1e40af; }
-
-    #statusMsg {
-      margin-top: 15px;
-      font-size: 13px;
-      text-align: center;
-      font-weight: 600;
-    }
-  </style>
+        /* Widget Keuangan Specific Styles */
+        .finance-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .finance-card { background: #0c1017; padding: 18px; border-radius: 12px; border: 1px solid var(--border); }
+        .finance-card h4 { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; }
+        .finance-card .amount { font-size: 1.4rem; font-weight: 800; }
+    </style>
 </head>
 <body>
 
-<div class="container">
-  <!-- Header -->
-  <div class="header">
-    <i class="fa-solid fa-building-columns badge-icon"></i>
-    <h2>PRESENSI PEGAWAI DIGITAL</h2>
-    <p>Pemerintah Daerah / Instansi Resmi</p>
-    
-    <div class="clock-card">
-      <div id="liveClock">00:00:00</div>
-      <div id="liveDate">Senin, 1 Januari 2026</div>
-    </div>
-  </div>
-
-  <!-- Form Body -->
-  <form id="absensiForm" class="form-body">
-    
-    <div class="form-group">
-      <label>Nomor Induk Pegawai (NIP)</label>
-      <div class="input-wrapper">
-        <i class="fa-solid fa-id-card"></i>
-        <input type="number" id="nip" class="form-control" placeholder="Masukkan 18 digit NIP" required>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label>Nama Lengkap</label>
-      <div class="input-wrapper">
-        <i class="fa-solid fa-user"></i>
-        <input type="text" id="nama" class="form-control" placeholder="Nama & Gelar" required>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label>Jabatan / Unit Kerja</label>
-      <div class="input-wrapper">
-        <i class="fa-solid fa-briefcase"></i>
-        <input type="text" id="jabatan" class="form-control" placeholder="Contoh: Staf Analis Kebijakan" required>
-      </div>
-    </div>
-
-    <!-- Tipe Absen Manual / Auto -->
-    <div class="form-group">
-      <label>Jenis Presensi</label>
-      <div class="radio-tile-group">
-        <label>
-          <input type="radio" name="tipeAbsen" value="Masuk" id="typeMasuk" hidden checked>
-          <div class="radio-tile"><i class="fa-solid fa-right-to-bracket"></i> Masuk</div>
-        </label>
-        <label>
-          <input type="radio" name="tipeAbsen" value="Pulang" id="typePulang" hidden>
-          <div class="radio-tile"><i class="fa-solid fa-right-from-bracket"></i> Pulang</div>
-        </label>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label>Gaji / Tunjangan Per Bulan (Rp)</label>
-      <div class="input-wrapper">
-        <i class="fa-solid fa-money-bill-wave"></i>
-        <input type="number" id="gajiBulan" class="form-control" placeholder="Contoh: 5000000" oninput="hitungGajiPerMenit()">
-      </div>
-    </div>
-
-    <!-- Output Kalkulasi Gaji per Menit -->
-    <div class="salary-box">
-      <div>
-        <div class="salary-title">Estimasi Rate / Menit</div>
-        <div style="font-size: 10px; color: #166534;">(Asumsi 7 hari kerja / 14 jam)</div>
-      </div>
-      <div class="salary-amount" id="ratePerMenit">Rp 500</div>
-    </div>
-
-    <button type="submit" class="btn-submit">
-      <i class="fa-solid fa-paper-plane"></i> Kirim Presensi
-    </button>
-
-    <div id="statusMsg"></div>
-  </form>
+<div class="header">
+    <h1><i class="fa-solid fa-wrench"></i> Fast Fix Garage</h1>
+    <p>Portal Absensi & Management Jam Duty Pegawai</p>
 </div>
 
-<script src="script.js"></script>
+<div class="nav-tabs">
+    <button class="tab-btn active" onclick="switchTab('user')"><i class="fa-solid fa-clock"></i> Absensi Anggota</button>
+    <button class="tab-btn" onclick="switchTab('admin')"><i class="fa-solid fa-user-shield"></i> Mode Admin (HRD / CEO)</button>
+</div>
+
+<div class="container">
+    
+    <!-- SECTION 1: PORTAL ANGGOTA -->
+    <div id="userSection">
+        <div class="card">
+            <h2 style="margin-bottom: 18px; font-size: 1.2rem; display:flex; align-items:center; gap:8px;">
+                <i class="fa-solid fa-right-to-bracket" style="color:var(--accent)"></i> Form Duty Pegawai
+            </h2>
+            <div id="userAlert"></div>
+
+            <div class="form-group">
+                <label>Pilih Nama Anggota IC</label>
+                <select id="userSelect" onchange="updateUserStatusView()">
+                    <option value="" disabled selected>-- Memuat Data Pegawai... --</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>PIN / Password Anggota</label>
+                <input type="password" id="userPin" placeholder="Masukkan PIN 4-6 Digit">
+            </div>
+
+            <div id="statusInfo" style="margin: 15px 0; font-size: 0.9rem; color: var(--text-muted); display:flex; align-items:center; gap:10px;">
+                <span>Status Saat Ini:</span>
+                <span id="currentStatusBadge" class="status-badge badge-off"><i class="fa-solid fa-circle-dot"></i> OFF DUTY</span>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-in" onclick="processDuty('ON DUTY')"><i class="fa-solid fa-play"></i> Clock In (On Duty)</button>
+                <button class="btn btn-out" onclick="processDuty('OFF DUTY')"><i class="fa-solid fa-stop"></i> Clock Out (Off Duty)</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-bottom: 10px; font-size: 1rem;"><i class="fa-solid fa-list-check"></i> Summary Jam Kerja Pegawai</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nama IC</th>
+                        <th>Jabatan</th>
+                        <th>Status</th>
+                        <th>Total Waktu Kerja</th>
+                    </tr>
+                </thead>
+                <tbody id="userSummaryTable">
+                    <tr><td colspan="4" style="text-align:center; color:var(--text-muted)">Memuat data...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- SECTION 2: MODE ADMIN -->
+    <div id="adminSection" class="hidden">
+        
+        <!-- LOGIN ADMIN -->
+        <div id="adminLoginForm" class="card">
+            <h2 style="margin-bottom: 10px; font-size: 1.2rem;"><i class="fa-solid fa-lock" style="color:var(--accent)"></i> Verification Mode Admin</h2>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 20px;">Akses khusus Petinggi Bengkel (HRD, Manager, CEO).</p>
+            <div id="adminLoginAlert"></div>
+
+            <div class="form-group">
+                <label>Password Admin</label>
+                <input type="password" id="adminPasswordInput" placeholder="Masukkan Password Admin">
+            </div>
+            <button class="btn btn-primary" style="width: 100%;" onclick="loginAdmin()"><i class="fa-solid fa-key"></i> Masuk Dashboard</button>
+        </div>
+
+        <!-- DASHBOARD ADMIN -->        
+        <div id="adminDashboard" class="hidden">
+            
+            <div class="card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap:wrap; gap:10px;">
+                <div>
+                    <h2 style="font-size: 1.2rem; color: var(--accent);"><i class="fa-solid fa-chart-line"></i> Dashboard Petinggi Bengkel</h2>
+                    <p style="font-size: 0.8rem; color: var(--text-muted);">Kelola pendaftaran pegawai, jam duty, sistem penggajian, dan kas</p>
+                </div>
+                <button class="btn btn-out" style="flex: none; padding: 8px 16px; font-size:0.8rem;" onclick="logoutAdmin()"><i class="fa-solid fa-power-off"></i> Logout Admin</button>
+            </div>
+
+            <!-- SUB-NAVIGASI ADMIN -->
+            <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+                <button class="tab-btn active" id="btnSubPegawai" onclick="switchAdminTab('pegawai')"><i class="fa-solid fa-users"></i> Kelola Pegawai & Jam Duty</button>
+                <button class="tab-btn" id="btnSubGaji" onclick="switchAdminTab('gaji')"><i class="fa-solid fa-money-bill-wave"></i> Pengaturan & Kalkulator Gaji</button>
+                <button class="tab-btn" id="btnSubKeuangan" onclick="switchAdminTab('keuangan')"><i class="fa-solid fa-wallet"></i> Keuangan Bengkel</button>
+            </div>
+
+            <!-- SUB-SECTION 1: KELOLA PEGAWAI -->
+            <div id="subSectionPegawai">
+                <!-- TAMBAH PEGAWAI CARD -->
+                <div class="card">
+                    <h3 style="margin-bottom: 15px; font-size: 1rem;"><i class="fa-solid fa-user-plus"></i> Tambah Pegawai Baru</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
+                        <div>
+                            <label>Nama IC</label>
+                            <input type="text" id="newMemberName" placeholder="Contoh: Alex_Stone">
+                        </div>
+                        <div>
+                            <label>Jabatan / Pangkat</label>
+                            <select id="newMemberRank">
+                                <option value="Magang">Magang</option>
+                                <option value="Junior Mechanic">Junior Mechanic</option>
+                                <option value="Senior Mechanic">Senior Mechanic</option>
+                                <option value="HRD">HRD</option>
+                                <option value="Manager">Manager</option>
+                                <option value="CEO">CEO</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>PIN Anggota</label>
+                            <input type="password" id="newMemberPin" placeholder="PIN (e.g. 1234)">
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" style="margin-top: 15px; width: 100%;" onclick="addMember()"><i class="fa-solid fa-plus"></i> Daftarkan Anggota</button>
+                </div>
+
+                <!-- REKAP JAM KERJA CARD -->
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                        <h3 style="font-size: 1rem;"><i class="fa-solid fa-users"></i> Rekap Jam Kerja & Opsi Control</h3>
+                        <button class="action-btn-sm" onclick="exportToExcel()" style="background-color: #22c55e; color: white; padding: 8px 14px; font-size: 0.8rem; border-radius: 8px;">
+                            <i class="fa-solid fa-file-excel"></i> Export Jam Kerja (.csv)
+                        </button>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nama IC</th>
+                                    <th>Jabatan</th>
+                                    <th>Status</th>
+                                    <th>Total Jam Duty</th>
+                                    <th>Aksi Admin</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminSummaryTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- RIWAYAT LOGS CARD -->
+                <div class="card">
+                    <h3 style="margin-bottom: 15px; font-size: 1rem;"><i class="fa-solid fa-clock-rotate-left"></i> 15 Log Transaksi Terakhir</h3>
+                    <div style="overflow-x: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Waktu</th>
+                                    <th>Nama IC</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminLogsTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUB-SECTION 2: PENGATURAN GAJI -->
+            <div id="subSectionGaji" class="hidden">
+                <!-- CARD SETTING TARIF PER JABATAN -->
+                <div class="card">
+                    <h3 style="margin-bottom: 15px; font-size: 1rem;"><i class="fa-solid fa-sliders"></i> Atur Tarif Gaji Per Jam (Per Jabatan)</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;" id="rateInputContainer"></div>
+                    <button class="btn btn-primary" style="margin-top: 15px; width: 100%;" onclick="saveSalaryRates()"><i class="fa-solid fa-floppy-disk"></i> Simpan Tarif Gaji</button>
+                </div>
+
+                <!-- CARD REKAP PAYCHECK / TOTAL GAJI PEGAWAI -->
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                        <div>
+                            <h3 style="font-size: 1rem;"><i class="fa-solid fa-file-invoice-dollar"></i> Rekapitualisasi Gaji Pegawai (Paycheck)</h3>
+                            <p style="font-size: 0.75rem; color: var(--accent); margin-top:2px;">* Maksimal penggajian dibatasi 14 jam per minggu/periode.</p>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 0.85rem; color: var(--accent); font-weight: bold;" id="totalPayrollAll">Total Estimasi Payout: $0</span>
+                            <button class="action-btn-sm" onclick="exportSalaryToExcel()" style="background-color: #10b981; color: white; padding: 6px 12px; font-size: 0.75rem; border-radius: 6px;">
+                                <i class="fa-solid fa-file-excel"></i> Export Gaji (.csv)
+                            </button>
+                        </div>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nama IC</th>
+                                    <th>Jabatan</th>
+                                    <th>Total Jam Duty</th>
+                                    <th>Tarif / Jam</th>
+                                    <th>Total Gaji Diterima</th>
+                                </tr>
+                            </thead>
+                            <tbody id="salarySummaryTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUB-SECTION 3: KEUANGAN BENGKEL -->
+            <div id="subSectionKeuangan" class="hidden">
+                <!-- RINGKASAN KAS -->
+                <div class="finance-cards">
+                    <div class="finance-card">
+                        <h4>Total Pemasukan</h4>
+                        <div class="amount" style="color: var(--success);" id="totalIncome">$0</div>
+                    </div>
+                    <div class="finance-card">
+                        <h4>Total Pengeluaran</h4>
+                        <div class="amount" style="color: var(--danger);" id="totalExpense">$0</div>
+                    </div>
+                    <div class="finance-card">
+                        <h4>Kas Bersih Bengkel</h4>
+                        <div class="amount" style="color: var(--accent);" id="netBalance">$0</div>
+                    </div>
+                </div>
+
+                <!-- FORM PEMASUKAN & PENGELUARAN -->
+                <div class="card">
+                    <h3 style="margin-bottom: 15px; font-size: 1rem;"><i class="fa-solid fa-cash-register"></i> Catat Transaksi Baru</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
+                        <div>
+                            <label>Jenis Transaksi</label>
+                            <select id="transType">
+                                <option value="in">Pemasukan (+)</option>
+                                <option value="out">Pengeluaran (-)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Jumlah Nominal ($)</label>
+                            <input type="number" id="transAmount" placeholder="Contoh: 5000">
+                        </div>
+                        <div>
+                            <label>Keterangan / Catatan</label>
+                            <input type="text" id="transDesc" placeholder="Contoh: Servis Mesin Sultan / Beli Component">
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" style="margin-top: 15px; width: 100%;" onclick="addTransaction()"><i class="fa-solid fa-plus-circle"></i> Simpan Transaksi</button>
+                </div>
+
+                <!-- TABEL RIWAYAT TRANSAKSI KEUANGAN -->
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                        <h3 style="font-size: 1rem;"><i class="fa-solid fa-receipt"></i> Riwayat Keuangan Bengkel</h3>
+                        <button class="action-btn-sm" onclick="exportFinanceToExcel()" style="background-color: #10b981; color: white; padding: 6px 12px; font-size: 0.75rem; border-radius: 6px;">
+                            <i class="fa-solid fa-file-excel"></i> Export Laporan Keuangan (.csv)
+                        </button>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Waktu</th>
+                                    <th>Jenis</th>
+                                    <th>Keterangan</th>
+                                    <th>Nominal</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="financeTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    // =========================================================================
+    // CONFIGURATION & DATABASE SETTINGS
+    // =========================================================================
+    const ADMIN_PASSWORD = "adminbengkel123";
+
+    const firebaseConfig = {
+        databaseURL: "https://fastfix-garage-duty-log-default-rtdb.asia-southeast1.firebasedatabase.app/"
+    };
+
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.database();
+
+    let employees = {};
+    let logs = [];
+    let finances = {};
+
+    let salaryRates = {
+        "Magang": 500,
+        "Junior Mechanic": 800,
+        "Senior Mechanic": 1200,
+        "HRD": 1500,
+        "Manager": 1800,
+        "CEO": 2500
+    };
+
+    // Realtime Listener Tarif Gaji dari Firebase
+    db.ref('salaryRates').on('value', (snapshot) => {
+        const val = snapshot.val();
+        if (val) {
+            salaryRates = val;
+        } else {
+            db.ref('salaryRates').set(salaryRates);
+        }
+        renderSalaryInputs();
+        renderSalarySummary();
+    });
+
+    // Realtime Listener Data Pegawai
+    db.ref('employees').on('value', (snapshot) => {
+        employees = snapshot.val() || {};
+        populateUserDropdown();
+        renderUserSummary();
+        renderAdminDashboard();
+        renderSalarySummary();
+    });
+
+    // Realtime Listener Data Logs
+    db.ref('logs').limitToLast(15).on('value', (snapshot) => {
+        const val = snapshot.val() || {};
+        logs = Object.values(val).reverse();
+        renderAdminLogs();
+    });
+
+    // Realtime Listener Data Keuangan
+    db.ref('finance').on('value', (snapshot) => {
+        finances = snapshot.val() || {};
+        renderFinanceDashboard();
+    });
+
+    // =========================================================================
+    // UTILITY FUNCTIONS
+    // =========================================================================
+    function formatMsToTime(ms) {
+        let totalSeconds = Math.floor(ms / 1000);
+        let hours = Math.floor(totalSeconds / 3600);
+        let minutes = Math.floor((totalSeconds % 3600) / 60);
+        let seconds = totalSeconds % 60;
+        return `${hours} Jam ${minutes} Mnt ${seconds} Detik`;
+    }
+
+    function showAlert(elementId, message, type) {
+        const el = document.getElementById(elementId);
+        el.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+        setTimeout(() => { el.innerHTML = ''; }, 4000);
+    }
+
+    function switchTab(tab) {
+        document.getElementById('userSection').classList.toggle('hidden', tab !== 'user');
+        document.getElementById('adminSection').classList.toggle('hidden', tab !== 'admin');
+        const btns = document.querySelectorAll('.nav-tabs .tab-btn');
+        btns[0].classList.toggle('active', tab === 'user');
+        btns[1].classList.toggle('active', tab === 'admin');
+    }
+
+    // Download Utility for CSV Files
+    function downloadCSV(filename, csvContent) {
+        const blob = new Blob(["\ufeff" + csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", filename);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    // =========================================================================
+    // USER DUTY PROCESS
+    // =========================================================================
+    function populateUserDropdown() {
+        const select = document.getElementById('userSelect');
+        const selectedValue = select.value;
+        select.innerHTML = '<option value="" disabled selected>-- Pilih Karakter IC --</option>';
+        
+        Object.keys(employees).forEach(key => {
+            const emp = employees[key];
+            select.innerHTML += `<option value="${key}">${emp.name} (${emp.rank})</option>`;
+        });
+
+        if (selectedValue && employees[selectedValue]) {
+            select.value = selectedValue;
+        }
+        updateUserStatusView();
+    }
+
+    function updateUserStatusView() {
+        const empId = document.getElementById('userSelect').value;
+        const badge = document.getElementById('currentStatusBadge');
+        if (empId && employees[empId]) {
+            const emp = employees[empId];
+            badge.innerHTML = `<i class="fa-solid fa-circle-dot"></i> ${emp.status}`;
+            badge.className = `status-badge ${emp.status === 'ON DUTY' ? 'badge-on' : 'badge-off'}`;
+        }
+    }
+
+    function processDuty(action) {
+        const empId = document.getElementById('userSelect').value;
+        const pin = document.getElementById('userPin').value.trim();
+
+        if (!empId) return showAlert('userAlert', 'Harap pilih nama anggota terlebih dahulu!', 'error');
+        if (!pin) return showAlert('userAlert', 'Masukkan PIN keamanan kamu!', 'error');
+
+        const emp = employees[empId];
+
+        if (emp.pin !== pin) {
+            return showAlert('userAlert', 'PIN / Password Salah!', 'error');
+        }
+
+        const now = new Date().getTime();
+
+        if (action === 'ON DUTY') {
+            if (emp.status === 'ON DUTY') return showAlert('userAlert', 'Kamu sudah dalam posisi ON DUTY!', 'error');
+            
+            db.ref(`employees/${empId}`).update({
+                status: 'ON DUTY',
+                lastClockIn: now
+            });
+            showAlert('userAlert', `Selamat Bekerja, ${emp.name}! (Clock In Berhasil)`, 'success');
+
+        } else if (action === 'OFF DUTY') {
+            if (emp.status === 'OFF DUTY') return showAlert('userAlert', 'Kamu sedang OFF DUTY!', 'error');
+            
+            let sessionTime = 0;
+            if (emp.lastClockIn) {
+                sessionTime = now - emp.lastClockIn;
+            }
+
+            db.ref(`employees/${empId}`).update({
+                status: 'OFF DUTY',
+                lastClockIn: null,
+                totalTimeMs: (emp.totalTimeMs || 0) + sessionTime
+            });
+            showAlert('userAlert', `Terima kasih atas kerja kerasnya, ${emp.name}! (Clock Out Berhasil)`, 'success');
+        }
+
+        db.ref('logs').push({
+            time: new Date().toLocaleString('id-ID'),
+            name: emp.name,
+            action: action
+        });
+
+        document.getElementById('userPin').value = '';
+    }
+
+    function renderUserSummary() {
+        const tbody = document.getElementById('userSummaryTable');
+        tbody.innerHTML = '';
+
+        if (Object.keys(employees).length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-muted)">Belum ada anggota terdaftar.</td></tr>';
+            return;
+        }
+
+        Object.keys(employees).forEach(key => {
+            const emp = employees[key];
+            let currentTotal = emp.totalTimeMs || 0;
+            if (emp.status === 'ON DUTY' && emp.lastClockIn) {
+                currentTotal += (new Date().getTime() - emp.lastClockIn);
+            }
+
+            tbody.innerHTML += `
+                <tr>
+                    <td><strong>${emp.name}</strong></td>
+                    <td>${emp.rank}</td>
+                    <td><span class="status-badge ${emp.status === 'ON DUTY' ? 'badge-on' : 'badge-off'}">${emp.status}</span></td>
+                    <td>${formatMsToTime(currentTotal)}</td>
+                </tr>
+            `;
+        });
+    }
+
+    // =========================================================================
+    // MODE ADMIN PROCESS
+    // =========================================================================
+    function loginAdmin() {
+        const pass = document.getElementById('adminPasswordInput').value;
+        if (pass === ADMIN_PASSWORD) {
+            document.getElementById('adminLoginForm').classList.add('hidden');
+            document.getElementById('adminDashboard').classList.remove('hidden');
+            document.getElementById('adminPasswordInput').value = '';
+        } else {
+            showAlert('adminLoginAlert', 'Password Admin Salah!', 'error');
+        }
+    }
+
+    function logoutAdmin() {
+        document.getElementById('adminDashboard').classList.add('hidden');
+        document.getElementById('adminLoginForm').classList.remove('hidden');
+    }
+
+    function switchAdminTab(tab) {
+        document.getElementById('subSectionPegawai').classList.toggle('hidden', tab !== 'pegawai');
+        document.getElementById('subSectionGaji').classList.toggle('hidden', tab !== 'gaji');
+        document.getElementById('subSectionKeuangan').classList.toggle('hidden', tab !== 'keuangan');
+        
+        document.getElementById('btnSubPegawai').classList.toggle('active', tab === 'pegawai');
+        document.getElementById('btnSubGaji').classList.toggle('active', tab === 'gaji');
+        document.getElementById('btnSubKeuangan').classList.toggle('active', tab === 'keuangan');
+
+        if (tab === 'gaji') {
+            renderSalaryInputs();
+            renderSalarySummary();
+        } else if (tab === 'keuangan') {
+            renderFinanceDashboard();
+        }
+    }
+
+    function addMember() {
+        const name = document.getElementById('newMemberName').value.trim();
+        const rank = document.getElementById('newMemberRank').value;
+        const pin = document.getElementById('newMemberPin').value.trim();
+
+        if (!name || !pin) return alert('Nama dan PIN wajib diisi!');
+
+        const newRef = db.ref('employees').push();
+        newRef.set({
+            name: name,
+            rank: rank,
+            pin: pin,
+            status: 'OFF DUTY',
+            totalTimeMs: 0,
+            lastClockIn: null
+        }).then(() => {
+            alert(`Pegawai ${name} berhasil terdaftar!`);
+            document.getElementById('newMemberName').value = '';
+            document.getElementById('newMemberPin').value = '';
+        });
+    }
+
+    function renderAdminDashboard() {
+        const tbody = document.getElementById('adminSummaryTable');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        if (Object.keys(employees).length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--text-muted)">Belum ada data pegawai.</td></tr>';
+            return;
+        }
+
+        Object.keys(employees).forEach(key => {
+            const emp = employees[key];
+            let currentTotal = emp.totalTimeMs || 0;
+            if (emp.status === 'ON DUTY' && emp.lastClockIn) {
+                currentTotal += (new Date().getTime() - emp.lastClockIn);
+            }
+
+            tbody.innerHTML += `
+                <tr>
+                    <td><strong>${emp.name}</strong></td>
+                    <td>${emp.rank}</td>
+                    <td><span class="status-badge ${emp.status === 'ON DUTY' ? 'badge-on' : 'badge-off'}">${emp.status}</span></td>
+                    <td>${formatMsToTime(currentTotal)}</td>
+                    <td>
+                        <button class="action-btn-sm btn-force-off" onclick="forceOffDuty('${key}')"><i class="fa-solid fa-power-off"></i> Force Off</button>
+                        <button class="action-btn-sm btn-reset" onclick="resetHours('${key}')"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+                        <button class="action-btn-sm btn-del" onclick="deleteMember('${key}')"><i class="fa-solid fa-trash"></i> Hapus</button>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    function forceOffDuty(key) {
+        const emp = employees[key];
+        if (!emp || emp.status === 'OFF DUTY') return alert('Pegawai sudah OFF DUTY');
+
+        const now = new Date().getTime();
+        let sessionTime = emp.lastClockIn ? (now - emp.lastClockIn) : 0;
+
+        db.ref(`employees/${key}`).update({
+            status: 'OFF DUTY',
+            lastClockIn: null,
+            totalTimeMs: (emp.totalTimeMs || 0) + sessionTime
+        });
+
+        db.ref('logs').push({
+            time: new Date().toLocaleString('id-ID'),
+            name: `${emp.name} (By Admin)`,
+            action: 'FORCE OFF DUTY'
+        });
+    }
+
+    function resetHours(key) {
+        if (confirm(`Yakin ingin mereset total jam kerja ${employees[key].name}?`)) {
+            db.ref(`employees/${key}`).update({
+                totalTimeMs: 0,
+                lastClockIn: employees[key].status === 'ON DUTY' ? new Date().getTime() : null
+            });
+        }
+    }
+
+    function deleteMember(key) {
+        if (confirm(`Hapus pegawai ${employees[key].name} dari sistem?`)) {
+            db.ref(`employees/${key}`).remove();
+        }
+    }
+
+    function renderAdminLogs() {
+        const tbody = document.getElementById('adminLogsTable');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        if (logs.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:var(--text-muted)">Belum ada log aktifitas.</td></tr>';
+            return;
+        }
+
+        logs.forEach(log => {
+            tbody.innerHTML += `
+                <tr>
+                    <td style="font-size:0.8rem; color:var(--text-muted);">${log.time}</td>
+                    <td><strong>${log.name}</strong></td>
+                    <td><span class="status-badge ${log.action.includes('ON') ? 'badge-on' : 'badge-off'}">${log.action}</span></td>
+                </tr>
+            `;
+        });
+    }
+
+    // =========================================================================
+    // SALARY SYSTEM PROCESS (DENGAN LIMIT MAX 14 JAM)
+    // =========================================================================
+    function renderSalaryInputs() {
+        const container = document.getElementById('rateInputContainer');
+        if (!container) return;
+        container.innerHTML = '';
+
+        Object.keys(salaryRates).forEach(rank => {
+            container.innerHTML += `
+                <div>
+                    <label style="font-size:0.75rem;">${rank}</label>
+                    <input type="number" id="rate_${rank.replace(/\s+/g, '_')}" value="${salaryRates[rank]}" placeholder="Tarif $">
+                </div>
+            `;
+        });
+    }
+
+    function saveSalaryRates() {
+        Object.keys(salaryRates).forEach(rank => {
+            const inputId = `rate_${rank.replace(/\s+/g, '_')}`;
+            const inputEl = document.getElementById(inputId);
+            if (inputEl) {
+                salaryRates[rank] = parseFloat(inputEl.value) || 0;
+            }
+        });
+
+        db.ref('salaryRates').set(salaryRates)
+            .then(() => alert('Tarif gaji berhasil diperbarui!'))
+            .catch((error) => alert('Gagal menyimpan: ' + error.message));
+    }
+
+    function renderSalarySummary() {
+        const tbody = document.getElementById('salarySummaryTable');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        let grandTotalPayroll = 0;
+
+        if (Object.keys(employees).length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--text-muted)">Belum ada data pegawai.</td></tr>';
+            document.getElementById('totalPayrollAll').innerText = 'Total Estimasi Payout: $0';
+            return;
+        }
+
+        Object.keys(employees).forEach(key => {
+            const emp = employees[key];
+            
+            // 1. Hitung jam duty asli
+            let currentTotalMs = emp.totalTimeMs || 0;
+            if (emp.status === 'ON DUTY' && emp.lastClockIn) {
+                currentTotalMs += (new Date().getTime() - emp.lastClockIn);
+            }
+
+            let hoursDecimal = (currentTotalMs / (1000 * 60 * 60)); // Jam asli
+
+            // 2. Limit jam penggajian maksimal 14 jam
+            let paidHoursDecimal = Math.min(hoursDecimal, 14); 
+
+            let rate = salaryRates[emp.rank] || 0;
+            
+            // 3. Hitung gaji berdasarkan jam yang dibatasi (Max 14 jam)
+            let totalSalary = Math.round(paidHoursDecimal * rate);
+
+            grandTotalPayroll += totalSalary;
+
+            // Indikator jika terkena limit 14 jam
+            let limitBadge = hoursDecimal > 14 
+                ? `<br><small style="color:var(--accent); font-size:0.75rem;">⚡ Limit Gaji: 14 Jam</small>` 
+                : '';
+
+            tbody.innerHTML += `
+                <tr>
+                    <td><strong>${emp.name}</strong></td>
+                    <td>${emp.rank}</td>
+                    <td>
+                        ${formatMsToTime(currentTotalMs)} (${hoursDecimal.toFixed(2)} Jam)
+                        ${limitBadge}
+                    </td>
+                    <td>$${rate.toLocaleString('en-US')}/jam</td>
+                    <td><strong style="color:var(--success); font-size:1rem;">$${totalSalary.toLocaleString('en-US')}</strong></td>
+                </tr>
+            `;
+        });
+
+        document.getElementById('totalPayrollAll').innerText = `Total Estimasi Payout: $${grandTotalPayroll.toLocaleString('en-US')}`;
+    }
+
+    // =========================================================================
+    // FINANCE DASHBOARD & SYSTEM
+    // =========================================================================
+    function addTransaction() {
+        const type = document.getElementById('transType').value;
+        const amount = parseFloat(document.getElementById('transAmount').value);
+        const desc = document.getElementById('transDesc').value.trim();
+
+        if (!amount || amount <= 0 || !desc) {
+            return alert('Harap isi nominal dan keterangan transaksi dengan benar!');
+        }
+
+        db.ref('finance').push({
+            time: new Date().toLocaleString('id-ID'),
+            type: type,
+            amount: amount,
+            desc: desc
+        }).then(() => {
+            document.getElementById('transAmount').value = '';
+            document.getElementById('transDesc').value = '';
+            alert('Transaksi berhasil dicatat!');
+        });
+    }
+
+    function renderFinanceDashboard() {
+        const tbody = document.getElementById('financeTable');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        let totalIn = 0;
+        let totalOut = 0;
+
+        const entries = Object.entries(finances).reverse();
+
+        if (entries.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--text-muted)">Belum ada catatan transaksi keuangan.</td></tr>';
+        } else {
+            entries.forEach(([key, trans]) => {
+                if (trans.type === 'in') totalIn += trans.amount;
+                if (trans.type === 'out') totalOut += trans.amount;
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td style="font-size:0.8rem; color:var(--text-muted);">${trans.time}</td>
+                        <td>
+                            <span class="status-badge ${trans.type === 'in' ? 'badge-on' : 'badge-off'}">
+                                ${trans.type === 'in' ? 'PEMASUKAN (+)' : 'PENGELUARAN (-)'}
+                            </span>
+                        </td>
+                        <td>${trans.desc}</td>
+                        <td><strong style="color: ${trans.type === 'in' ? 'var(--success)' : 'var(--danger)'}">$${trans.amount.toLocaleString('en-US')}</strong></td>
+                        <td>
+                            <button class="action-btn-sm btn-del" onclick="deleteTransaction('${key}')"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        document.getElementById('totalIncome').innerText = `$${totalIn.toLocaleString('en-US')}`;
+        document.getElementById('totalExpense').innerText = `$${totalOut.toLocaleString('en-US')}`;
+        document.getElementById('netBalance').innerText = `$${(totalIn - totalOut).toLocaleString('en-US')}`;
+    }
+
+    function deleteTransaction(key) {
+        if (confirm('Hapus transaksi ini dari rekap keuangan?')) {
+            db.ref(`finance/${key}`).remove();
+        }
+    }
+
+    // =========================================================================
+    // EXPORT FUNCTIONS TO EXCEL (CSV)
+    // =========================================================================
+
+    // 1. Export Jam Kerja Pegawai (Jam Asli)
+    function exportToExcel() {
+        let csv = "Nama IC,Jabatan,Status,Total Jam (Desimal),Total Waktu\n";
+        Object.keys(employees).forEach(key => {
+            const emp = employees[key];
+            let currentTotalMs = emp.totalTimeMs || 0;
+            if (emp.status === 'ON DUTY' && emp.lastClockIn) {
+                currentTotalMs += (new Date().getTime() - emp.lastClockIn);
+            }
+            let hoursDecimal = (currentTotalMs / (1000 * 60 * 60)).toFixed(2);
+            let timeFormatted = formatMsToTime(currentTotalMs).replace(/,/g, '');
+
+            csv += `"${emp.name}","${emp.rank}","${emp.status}",${hoursDecimal},"${timeFormatted}"\n`;
+        });
+        downloadCSV(`Rekap_Jam_Kerja_${new Date().toISOString().slice(0,10)}.csv`, csv);
+    }
+
+    // 2. Export Gaji Pegawai (Mengikuti Batas Max 14 Jam)
+    function exportSalaryToExcel() {
+        let csv = "Nama IC,Jabatan,Total Jam Duty (Asli),Jam Dibayar (Max 14h),Tarif Per Jam,Total Gaji ($)\n";
+        Object.keys(employees).forEach(key => {
+            const emp = employees[key];
+            
+            let currentTotalMs = emp.totalTimeMs || 0;
+            if (emp.status === 'ON DUTY' && emp.lastClockIn) {
+                currentTotalMs += (new Date().getTime() - emp.lastClockIn);
+            }
+            
+            let hoursDecimal = (currentTotalMs / (1000 * 60 * 60)); // Jam Asli
+            let paidHoursDecimal = Math.min(hoursDecimal, 14);     // Limit Max 14 Jam
+            
+            let rate = salaryRates[emp.rank] || 0;
+            let totalSalary = Math.round(paidHoursDecimal * rate);
+
+            csv += `"${emp.name}","${emp.rank}",${hoursDecimal.toFixed(2)},${paidHoursDecimal.toFixed(2)},${rate},${totalSalary}\n`;
+        });
+        downloadCSV(`Rekap_Gaji_Pegawai_${new Date().toISOString().slice(0,10)}.csv`, csv);
+    }
+
+    // 3. Export Laporan Keuangan
+    function exportFinanceToExcel() {
+        let csv = "Waktu,Jenis,Keterangan,Nominal ($)\n";
+        Object.values(finances).forEach(trans => {
+            csv += `"${trans.time}","${trans.type === 'in' ? 'Pemasukan' : 'Pengeluaran'}","${trans.desc.replace(/"/g, '""')}",${trans.amount}\n`;
+        });
+        downloadCSV(`Laporan_Keuangan_Bengkel_${new Date().toISOString().slice(0,10)}.csv`, csv);
+    }
+</script>
 </body>
 </html>
