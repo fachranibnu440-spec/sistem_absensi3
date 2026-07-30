@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistem Absensi Digital Pegawai</title>
+  <!-- Google Fonts & Font Awesome Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    :root {
+      --primary: #1e3a8a; /* Navy Pemerintahan */
+      --primary-accent: #3b82f6;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --success: #10b981;
+      --warning: #f59e0b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 480px;
+      background: var(--card-bg);
+      border-radius: 20px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+      color: white;
+      padding: 30px 20px;
+      text-align: center;
+      position: relative;
+    }
+
+    .header i.badge-icon {
+      font-size: 38px;
+      margin-bottom: 10px;
+      color: #93c5fd;
+    }
+
+    .header h2 { font-size: 20px; font-weight: 700; letter-spacing: 0.5px; }
+    .header p { font-size: 13px; opacity: 0.85; margin-top: 4px; }
+
+    .clock-card {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(8px);
+      border-radius: 12px;
+      padding: 12px;
+      margin-top: 15px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    #liveClock { font-size: 26px; font-weight: 700; letter-spacing: 1px; }
+    #liveDate { font-size: 12px; opacity: 0.9; }
+
+    .form-body { padding: 25px 20px; }
+
+    .form-group { margin-bottom: 18px; }
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-wrapper i {
+      position: absolute;
+      left: 14px;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 12px 14px 12px 40px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 14px;
+      background: #f8fafc;
+      transition: all 0.2s;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary-accent);
+      background: white;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+
+    .radio-tile-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .radio-tile {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: #f8fafc;
+      transition: all 0.2s;
+    }
+
+    input[type="radio"]:checked + .radio-tile {
+      background: #eff6ff;
+      border-color: var(--primary-accent);
+      color: var(--primary);
+    }
+
+    .salary-box {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .salary-title { font-size: 12px; color: #166534; font-weight: 500; }
+    .salary-amount { font-size: 16px; font-weight: 700; color: #15803d; }
+
+    .btn-submit {
+      width: 100%;
+      padding: 14px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-submit:hover { background: #1e40af; }
+
+    #statusMsg {
+      margin-top: 15px;
+      font-size: 13px;
+      text-align: center;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Header -->
+  <div class="header">
+    <i class="fa-solid fa-building-columns badge-icon"></i>
+    <h2>PRESENSI PEGAWAI DIGITAL</h2>
+    <p>Pemerintah Daerah / Instansi Resmi</p>
+    
+    <div class="clock-card">
+      <div id="liveClock">00:00:00</div>
+      <div id="liveDate">Senin, 1 Januari 2026</div>
+    </div>
+  </div>
+
+  <!-- Form Body -->
+  <form id="absensiForm" class="form-body">
+    
+    <div class="form-group">
+      <label>Nomor Induk Pegawai (NIP)</label>
+      <div class="input-wrapper">
+        <i class="fa-solid fa-id-card"></i>
+        <input type="number" id="nip" class="form-control" placeholder="Masukkan 18 digit NIP" required>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Nama Lengkap</label>
+      <div class="input-wrapper">
+        <i class="fa-solid fa-user"></i>
+        <input type="text" id="nama" class="form-control" placeholder="Nama & Gelar" required>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Jabatan / Unit Kerja</label>
+      <div class="input-wrapper">
+        <i class="fa-solid fa-briefcase"></i>
+        <input type="text" id="jabatan" class="form-control" placeholder="Contoh: Staf Analis Kebijakan" required>
+      </div>
+    </div>
+
+    <!-- Tipe Absen Manual / Auto -->
+    <div class="form-group">
+      <label>Jenis Presensi</label>
+      <div class="radio-tile-group">
+        <label>
+          <input type="radio" name="tipeAbsen" value="Masuk" id="typeMasuk" hidden checked>
+          <div class="radio-tile"><i class="fa-solid fa-right-to-bracket"></i> Masuk</div>
+        </label>
+        <label>
+          <input type="radio" name="tipeAbsen" value="Pulang" id="typePulang" hidden>
+          <div class="radio-tile"><i class="fa-solid fa-right-from-bracket"></i> Pulang</div>
+        </label>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Gaji / Tunjangan Per Bulan (Rp)</label>
+      <div class="input-wrapper">
+        <i class="fa-solid fa-money-bill-wave"></i>
+        <input type="number" id="gajiBulan" class="form-control" placeholder="Contoh: 5000000" oninput="hitungGajiPerMenit()">
+      </div>
+    </div>
+
+    <!-- Output Kalkulasi Gaji per Menit -->
+    <div class="salary-box">
+      <div>
+        <div class="salary-title">Estimasi Rate / Menit</div>
+        <div style="font-size: 10px; color: #166534;">(Asumsi 7 hari kerja / 14 jam)</div>
+      </div>
+      <div class="salary-amount" id="ratePerMenit">Rp 500</div>
+    </div>
+
+    <button type="submit" class="btn-submit">
+      <i class="fa-solid fa-paper-plane"></i> Kirim Presensi
+    </button>
+
+    <div id="statusMsg"></div>
+  </form>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
